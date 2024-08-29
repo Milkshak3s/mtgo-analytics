@@ -1,6 +1,6 @@
 [
     {
-        "name": "Izzet Phoenix (phoenix, impulse)",
+        "name": "Izzet Phoenix",
         "archetype": "Izzet Phoenix",
         "matches": [
             {
@@ -25,6 +25,51 @@
             {
                 "card": "Bloodtithe Harvester",
                 "count": 4
+            }
+        ]
+    },
+
+    {
+        "name": "Mono G Devotion",
+        "archetype": "Mono G Devotion",
+        "matches": [
+            {
+                "card": "Nykthos, Shrine to Nyx",
+                "count": 3
+            },
+            {
+                "card": "Storm the Festival",
+                "count": 3
+            }
+        ]
+    },
+
+    {
+        "name": "Mono W Humans",
+        "archetype": "Mono W Humans",
+        "matches": [
+            {
+                "card": "Thalia, Guardian of Thraben",
+                "count": 3
+            },
+            {
+                "card": "Adeline, Resplendent Cathar",
+                "count": 3
+            }
+        ]
+    },
+
+    {
+        "name": "Abzan Greasefang",
+        "archetype": "Abzan Greasefang",
+        "matches": [
+            {
+                "card": "Greasefang, Okiba Boss",
+                "count": 4
+            },
+            {
+                "card": "Grisly Salvage",
+                "count": 3
             }
         ]
     }

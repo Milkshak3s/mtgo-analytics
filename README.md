@@ -2,7 +2,7 @@
 ### Usage
 1.
 ```
-git clone git@github.com:Badaro/MTGODecklistCache.git
+git clone https://github.com/Badaro/MTGODecklistCache.git
 cd MTGODecklistCache && git pull && cd ..
 python -m pip install -r requirements.txt
 ```
