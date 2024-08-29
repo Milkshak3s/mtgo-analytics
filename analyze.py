@@ -131,7 +131,9 @@ def check_rules():
         for deck in data["Decks"]:
             rule_matches = check_rule_matches(deck)
             click.echo(f"{rule_matches}")
-        pass
+            deck['Archetype'] = rule_matches
+        with open(filepath, "w+") as f:
+            json.dump(data, f)
 
 
 def list_t_names():
