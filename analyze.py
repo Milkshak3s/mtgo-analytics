@@ -47,7 +47,7 @@ def check_rule_matches(deck):
     matching = []
     for rule in rules:
         if matches(cardlist, rule):
-            matching.append(rule["name"])
+            matching.append(rule["archetype"])
     return matching
 
 def rule_to_archetype(rule_name):
@@ -130,6 +130,14 @@ def enrich():
         with open(filepath, "w+") as f:
             json.dump(data, f)
 
+def format_decklist(deck):
+    deck_string = "Mainboard:\n"
+    for card in deck["Mainboard"]:
+        deck_string += f"  {str(card["Count"])} {card["CardName"]}\n"
+    deck_string += "Sideboard:\n"
+    for card in deck["Sideboard"]:
+        deck_string += f"  {str(card["Count"])} {card["CardName"]}\n"
+    return deck_string
 
 @cli.command()
 def check_rules():
@@ -139,8 +147,19 @@ def check_rules():
         data = load_file_json(filepath)
         for deck in data["Decks"]:
             rule_matches = check_rule_matches(deck)
-            click.echo(f"{rule_matches}")
-            deck['Archetype'] = rule_matches
+            if len(rule_matches) == 1:
+                click.echo(f"{rule_matches}")
+                deck['Archetype'] = rule_matches
+            elif len(rule_matches) > 1:
+                click.echo(f"Multiple archetypes matched (disambiguation required): {rules_matches}")
+                click.echo(f"===Decklist===\n")
+                click.echo(format_decklist(deck))
+                return
+            else:
+                click.echo(f"No archetypes matched (additional decklist rule required)")
+                click.echo(f"===Decklist===\n")
+                click.echo(format_decklist(deck))
+                return
         with open(filepath, "w+") as f:
             json.dump(data, f)
 
@@ -155,7 +174,7 @@ def to_rule(card_list):
     for card in sanitized_list:
         card_dict = {}
         card_dict["card"] = card
-        card_dict["count"] = sanitized_list[card]
+        card_dict["count"] = int(sanitized_list[card])
         rule.append(card_dict)
     return rule
 
