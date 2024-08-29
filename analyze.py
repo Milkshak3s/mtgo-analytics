@@ -6,6 +6,7 @@ import shutil
 
 
 WRITEFILE = "filelist.txt"
+RULEFILE = "archetype_rules.json"
 
 
 def load_file_json(filename):
@@ -49,6 +50,13 @@ def check_rule_matches(deck):
             matching.append(rule["name"])
     return matching
 
+def rule_to_archetype(rule_name):
+    """Returns the archetype that the given rule matches for"""
+    rules = load_archetype_ruleset()
+    for rule in rules:
+        if rule["name"] == rule_name:
+            return rule["archetype"]
+    return "???"
 
 @click.group()
 def cli():
@@ -56,8 +64,8 @@ def cli():
 
 
 @cli.command()
-@click.option("--after_date", type=str, required=True)
-@click.option("--format", type=str, required=True)
+@click.option("--after_date", "-a", type=str, required=True)
+@click.option("--format", "-f", type=str, required=True)
 def get_filelist(after_date, format):
     """Generate a list of files after a certain date with the format YYYY-MM-DD"""
     date = datetime.fromisoformat(after_date)
@@ -136,6 +144,49 @@ def check_rules():
         with open(filepath, "w+") as f:
             json.dump(data, f)
 
+@cli.command()
+def get_archetypes():
+    """Display all archetype annotations"""
+    pass
+
+def to_rule(card_list):
+    rule = []
+    sanitized_list = dict(card_list)
+    for card in sanitized_list:
+        card_dict = {}
+        card_dict["card"] = card
+        card_dict["count"] = sanitized_list[card]
+        rule.append(card_dict)
+    return rule
+
+
+@cli.command()
+@click.option("--name", "-n", type=str, required=True)
+@click.option("--archetype", "-a", type=str, required=True)
+@click.option("--card", "-c", type=(str, click.IntRange(1, 4)), required=True, multiple=True)
+def add_rule(name, archetype, card):
+    """Introduce the provided rule to the ruleset in 'archetype_rules.json'. If the rule already exists, overwrite it"""
+    rules = load_archetype_ruleset()
+    new_rule = to_rule(card)
+    new = True
+    for rule in rules:
+        if rule["name"] == name:
+            rule["archetype"] = archetype
+            rule["matches"] = new_rule
+            new = False
+    if new:
+        rules.append({
+            "name" : name,
+            "archetype" : archetype,
+            "matches" : new_rule
+            })
+    with open(RULEFILE, "w") as f:
+            json.dump(rules, f)
+
+
+@cli.command()
+def delete_rule():
+    pass
 
 def list_t_names():
     # return list of json files by date?
