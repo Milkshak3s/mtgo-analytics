@@ -64,8 +64,8 @@ def cli():
 
 
 @cli.command()
-@click.option("--after_date", "-a", type=str, required=True)
-@click.option("--format", "-f", type=str, required=True)
+@click.argument('after_date', nargs=1, type=str)
+@click.argument('format', nargs=1, type=str)
 def get_filelist(after_date, format):
     """Generate a list of files after a certain date with the format YYYY-MM-DD"""
     date = datetime.fromisoformat(after_date)
@@ -161,13 +161,14 @@ def to_rule(card_list):
 
 
 @cli.command()
-@click.option("--name", "-n", type=str, required=True)
-@click.option("--archetype", "-a", type=str, required=True)
-@click.option("--card", "-c", type=(str, click.IntRange(1, 4)), required=True, multiple=True)
-def add_rule(name, archetype, card):
+@click.argument('name', nargs=1, type=str)
+@click.argument('archetype', nargs=1, type=str)
+@click.argument('cards', nargs=-1, type=str)
+def add_rule(name, archetype, cards):
     """Introduce the provided rule to the ruleset in 'archetype_rules.json'. If the rule already exists, overwrite it"""
     rules = load_archetype_ruleset()
-    new_rule = to_rule(card)
+    cards = list(map(lambda x : x.split(':'), cards))
+    new_rule = to_rule(cards)
     new = True
     for rule in rules:
         if rule["name"] == name:
@@ -184,7 +185,7 @@ def add_rule(name, archetype, card):
             json.dump(rules, f)
 
 @cli.command()
-@click.option("--name", "-n", type=str, required=True)
+@click.argument('name', nargs=1, type=str)
 def delete_rule(name):
     """Remove the specified rule from the ruleset in 'archetype_rules.json', if found"""
     rules = load_archetype_ruleset()
@@ -194,7 +195,7 @@ def delete_rule(name):
             rules.remove(rule)
             not_found = False
     if not_found:
-        click.echo(f"No rule with name {name} was found in the ruleset")
+        click.echo(f"No rule with name [{name}] was found in the ruleset")
     with open(RULEFILE, "w") as f:
             json.dump(rules, f)
 
