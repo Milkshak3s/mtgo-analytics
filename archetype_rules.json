@@ -1,15 +1,30 @@
 [
     {
-        "name": "Izzet Phoenix",
+        "name": "Izzet Phoenix (phoenix, impulse)",
         "archetype": "Izzet Phoenix",
         "matches": [
             {
-                "card": "Ledger Shredder",
-                "count": 3
+                "card": "Fiery Impulse",
+                "count": 2
             },
             {
                 "card": "Arclight Phoenix",
-                "count": 3
+                "count": 4
+            }
+        ]
+    },
+
+    {
+        "name": "Rakdos Midrange",
+        "archetype": "Rakdos Midrange",
+        "matches": [
+            {
+                "card": "Bonecrusher Giant",
+                "count": 2
+            },
+            {
+                "card": "Bloodtithe Harvester",
+                "count": 4
             }
         ]
     }

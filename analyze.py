@@ -27,9 +27,12 @@ def load_archetype_ruleset():
     return load_file_json("archetype_rules.json")
 
 
+
 def matches(cardlist, rule):
+    lower_deck = [s.lower() for s in cardlist.count(match["card"])]
+
     for match in rule["matches"]:
-        if cardlist.count(match["card"]) < match["count"]:
+        if lower_deck < match["count"].lower():
             return False
     return True
 
