@@ -31,8 +31,12 @@ def load_archetype_ruleset():
 
 def matches(cardlist, rule):
     for match in rule["matches"]:
-        if cardlist.count(match["card"].lower()) < match["count"]:
-            return False
+        if match["count"] > 0:
+            if cardlist.count(match["card"].lower()) < match["count"]:
+                return False
+        else:
+            if match["card"].lower() in cardlist:
+                return False
     return True
 
 
@@ -47,7 +51,7 @@ def check_rule_matches(deck):
     matching = []
     for rule in rules:
         if matches(cardlist, rule):
-            matching.append(rule["archetype"])
+            matching.append(rule["name"])
     return matching
 
 def rule_to_archetype(rule_name):
@@ -151,7 +155,7 @@ def check_rules():
                 click.echo(f"{rule_matches}")
                 deck['Archetype'] = rule_matches
             elif len(rule_matches) > 1:
-                click.echo(f"Multiple archetypes matched (disambiguation required): {rules_matches}")
+                click.echo(f"Multiple archetypes matched (disambiguation required): {rule_matches}")
                 click.echo(f"===Decklist===\n")
                 click.echo(format_decklist(deck))
                 return
@@ -217,6 +221,18 @@ def delete_rule(name):
         click.echo(f"No rule with name [{name}] was found in the ruleset")
     with open(RULEFILE, "w") as f:
             json.dump(rules, f)
+
+@cli.command()
+@click.argument('name', nargs=1, type=str)
+def show_rule(name):
+    rules = load_archetype_ruleset()
+    not_found = True
+    for rule in rules:
+        if rule["name"] == name:
+            click.echo(f"Rule: {name}\nArchetype: {rule["archetype"]}")
+            for card in rule["matches"]:
+                click.echo(f"  {card["count"]} {card["card"]}")
+    click.echo(f"No rule with name [{name}] was found in the ruleset")
 
 def list_t_names():
     # return list of json files by date?
