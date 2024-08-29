@@ -1,0 +1,16 @@
+[
+    {
+        "name": "Izzet Phoenix",
+        "archetype": "Izzet Phoenix",
+        "matches": [
+            {
+                "card": "Ledger Shredder",
+                "count": 3
+            },
+            {
+                "card": "Arclight Phoenix",
+                "count": 3
+            }
+        ]
+    }
+]
