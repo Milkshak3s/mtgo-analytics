@@ -29,10 +29,8 @@ def load_archetype_ruleset():
 
 
 def matches(cardlist, rule):
-    lower_deck = [s.lower() for s in cardlist.count(match["card"])]
-
     for match in rule["matches"]:
-        if lower_deck < match["count"].lower():
+        if cardlist.count(match["card"].lower()) < match["count"]:
             return False
     return True
 
@@ -43,7 +41,7 @@ def check_rule_matches(deck):
     cardlist = []
     for card in deck["Mainboard"]:
         for x in range(card["Count"]):
-            cardlist.append(card["CardName"])
+            cardlist.append(card["CardName"].lower())
 
     matching = []
     for rule in rules:
