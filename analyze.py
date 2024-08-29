@@ -25,7 +25,7 @@ def load_working_filepaths():
     
 
 def load_archetype_ruleset():
-    return load_file_json("archetype_rules.json")
+    return load_file_json(RULEFILE)
 
 
 
@@ -183,10 +183,20 @@ def add_rule(name, archetype, card):
     with open(RULEFILE, "w") as f:
             json.dump(rules, f)
 
-
 @cli.command()
-def delete_rule():
-    pass
+@click.option("--name", "-n", type=str, required=True)
+def delete_rule(name):
+    """Remove the specified rule from the ruleset in 'archetype_rules.json', if found"""
+    rules = load_archetype_ruleset()
+    not_found = True
+    for rule in rules:
+        if rule["name"] == name:
+            rules.remove(rule)
+            not_found = False
+    if not_found:
+        click.echo(f"No rule with name {name} was found in the ruleset")
+    with open(RULEFILE, "w") as f:
+            json.dump(rules, f)
 
 def list_t_names():
     # return list of json files by date?
