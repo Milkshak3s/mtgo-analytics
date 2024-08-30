@@ -269,8 +269,9 @@ def extract_meta(truncate):
         sorted_meta[truncate] = ("Other", other_count)
         sorted_meta = sorted_meta[:truncate + 1]
     longest = max(map(len, metagame.keys()))
+    total = sum(map(lambda x : x[1], sorted_meta))
     for archetype in sorted_meta:
-        click.echo("%-*s %d" % (longest + 2, archetype[0], archetype[1]))
+        click.echo("%-*s %-4d %0.1f%%" % (longest + 2, archetype[0], archetype[1], round(archetype[1] / total * 100, 1)))
 
 def list_t_names():
     # return list of json files by date?
