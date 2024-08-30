@@ -153,7 +153,7 @@ def check_rules():
             rule_matches = check_rule_matches(deck)
             if len(rule_matches) == 1:
                 click.echo(f"{rule_matches}")
-                deck['Archetype'] = rule_matches
+                deck['Archetype'] = rule_matches[0]
             elif len(rule_matches) > 1:
                 click.echo(f"Multiple archetypes matched (disambiguation required): {rule_matches}")
                 click.echo(f"===Decklist===\n")
@@ -260,8 +260,8 @@ def extract_meta(truncate):
     for filepath in filepaths:
         data = load_file_json(filepath)
         for deck in data["Decks"]:
-            if "Archetype" in deck and deck["Archetype"][0][:2] != "!!":
-                metagame[deck["Archetype"][0]] = metagame.get(deck["Archetype"][0], 0) + 1 #TODO - why is the archetype a list and what can we do about this?
+            if "Archetype" in deck and deck["Archetype"][:2] != "!!":
+                metagame[deck["Archetype"]] = metagame.get(deck["Archetype"], 0) + 1 #TODO - why is the archetype a list and what can we do about this?
     sorted_meta = sort_by_values(metagame)
     sorted_meta.reverse()
     if truncate and truncate < len(sorted_meta) - 1:
@@ -271,7 +271,55 @@ def extract_meta(truncate):
     longest = max(map(len, metagame.keys()))
     total = sum(map(lambda x : x[1], sorted_meta))
     for archetype in sorted_meta:
-        click.echo("%-*s %-4d %0.1f%%" % (longest + 2, archetype[0], archetype[1], round(archetype[1] / total * 100, 1)))
+        click.echo("%-*s %-4d %0.1f%%" % (longest + 2, archetype[0], archetype[1], archetype[1] / total * 100))
+
+def search_deck(target, deck):
+    for card in deck:
+        if card["CardName"].lower() == target.lower():
+            return card["Count"]
+    return 0
+
+@cli.command()
+@click.argument('archetype', nargs=1, type=str)
+def show_archetype(archetype):
+    filepaths = load_working_filepaths()
+    count = 0
+    for filepath in filepaths:
+        data = load_file_json(filepath)
+        for deck in data["Decks"]:
+            if "Archetype" in deck and deck["Archetype"].lower() == archetype.lower():
+                count += 1
+                click.echo(f"===Decklist for {deck["Player"]}===")
+                click.echo(format_decklist(deck))
+    click.echo(f"{count} total decklists found matching archetype [{archetype}]")
+
+@cli.command()
+@click.argument('card', nargs=1, type=str)
+@click.argument('archetypes', nargs=-1, type=str, required=False)
+def search_card(card, archetypes):
+    match_count = 0
+    total_count = 0
+    mainboard_average = 0
+    sideboard_average = 0
+    filepaths = load_working_filepaths()
+    search_all = len(archetypes) == 0
+    for filepath in filepaths:
+        data = load_file_json(filepath)
+        for deck in data["Decks"]:
+            if "Archetype" in deck and (search_all or deck["Archetype"] in archetypes):
+                total_count += 1
+                in_mb = search_deck(card, deck["Mainboard"])
+                in_sb = search_deck(card, deck["Sideboard"])
+                if in_mb + in_sb > 0:
+                    match_count += 1
+                mainboard_average += in_mb
+                sideboard_average += in_sb
+    if (match_count > 0):
+            mainboard_average /= match_count
+            sideboard_average /= match_count
+    click.echo(f"Found in {match_count} out of {total_count} decks:")
+    click.echo("  Average count in mainboards (where present): %0.2f" % (mainboard_average))
+    click.echo("  Average count in sideboards (where present): %0.2f" % (sideboard_average))
 
 def list_t_names():
     # return list of json files by date?
