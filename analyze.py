@@ -137,10 +137,10 @@ def enrich():
 def format_decklist(deck):
     deck_string = "Mainboard:\n"
     for card in deck["Mainboard"]:
-        deck_string += f"  {str(card["Count"])} {card["CardName"]}\n"
+        deck_string += f"  {str(card['Count'])} {card['CardName']}\n"
     deck_string += "Sideboard:\n"
     for card in deck["Sideboard"]:
-        deck_string += f"  {str(card["Count"])} {card["CardName"]}\n"
+        deck_string += f"  {str(card['Count'])} {card['CardName']}\n"
     return deck_string
 
 @cli.command()
@@ -158,11 +158,15 @@ def check_rules():
                 click.echo(f"Multiple archetypes matched (disambiguation required): {rule_matches}")
                 click.echo(f"===Decklist===\n")
                 click.echo(format_decklist(deck))
+                with open(filepath, "w+") as f: #TODO -- this is big slops, find a better way to handle escaping
+                    json.dump(data, f)
                 return
             else:
                 click.echo(f"No archetypes matched (additional decklist rule required)")
                 click.echo(f"===Decklist===\n")
                 click.echo(format_decklist(deck))
+                with open(filepath, "w+") as f:
+                    json.dump(data, f)
                 return
         with open(filepath, "w+") as f:
             json.dump(data, f)
@@ -229,10 +233,44 @@ def show_rule(name):
     not_found = True
     for rule in rules:
         if rule["name"] == name:
-            click.echo(f"Rule: {name}\nArchetype: {rule["archetype"]}")
+            click.echo(f"Rule: {name}\nArchetype: {rule['archetype']}")
             for card in rule["matches"]:
-                click.echo(f"  {card["count"]} {card["card"]}")
+                click.echo(f"  {card['count']} {card['card']}")
+            return
     click.echo(f"No rule with name [{name}] was found in the ruleset")
+
+@cli.command()
+def list_rules():
+    rules = load_archetype_ruleset()
+    rule_list = []
+    for rule in rules:
+        rule_list.append(rule['name'])
+    rule_list.sort()
+    for rule in rule_list:
+        click.echo(rule)
+
+def sort_by_values(dict):
+    return sorted(list(dict.items()), key=lambda x : x[1])
+
+@cli.command()
+@click.option("--truncate", "-t", type=click.IntRange(1,))
+def extract_meta(truncate):
+    metagame = {}
+    filepaths = load_working_filepaths()
+    for filepath in filepaths:
+        data = load_file_json(filepath)
+        for deck in data["Decks"]:
+            if "Archetype" in deck and deck["Archetype"][0][:2] != "!!":
+                metagame[deck["Archetype"][0]] = metagame.get(deck["Archetype"][0], 0) + 1 #TODO - why is the archetype a list and what can we do about this?
+    sorted_meta = sort_by_values(metagame)
+    sorted_meta.reverse()
+    if truncate and truncate < len(sorted_meta) - 1:
+        other_count = sum(map(lambda x : x[1], sorted_meta[truncate:]))
+        sorted_meta[truncate] = ("Other", other_count)
+        sorted_meta = sorted_meta[:truncate + 1]
+    longest = max(map(len, metagame.keys()))
+    for archetype in sorted_meta:
+        click.echo("%-*s %d" % (longest + 2, archetype[0], archetype[1]))
 
 def list_t_names():
     # return list of json files by date?
