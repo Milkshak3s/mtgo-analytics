@@ -51,7 +51,7 @@ def check_rule_matches(deck):
     matching = []
     for rule in rules:
         if matches(cardlist, rule):
-            matching.append(rule["name"])
+            matching.append(rule)
     return matching
 
 @click.group()
@@ -146,18 +146,19 @@ def check_rules(silent):
         for deck in data["Decks"]:
             count += 1
             rule_matches = check_rule_matches(deck)
-            if len(rule_matches) == 1:
+            archetypes = set(list(map(lambda x : x["archetype"], rule_matches)))
+            if len(archetypes) == 1:
                 if not silent:
-                    click.echo(f"{rule_matches}")
-                deck['Archetype'] = rule_matches[0]
-            elif len(rule_matches) > 1:
-                click.echo(f"Multiple archetypes matched (disambiguation required): {rule_matches}")
+                    click.echo(f"{rule_matches[0]["archetype"]}")
+                deck["Archetype"] = rule_matches[0]["archetype"]
+            if len(archetypes) > 1:
+                click.echo(f"Multiple archetypes matched (disambiguation required): {list(map(lambda x : x["name"], rule_matches))}")
                 click.echo(f"===Decklist===\n")
                 click.echo(format_decklist(deck))
                 with open(filepath, "w+") as f: #TODO -- this is big slops, find a better way to handle escaping
                     json.dump(data, f)
                 return
-            else:
+            if len(archetypes) < 1:
                 click.echo(f"No archetypes matched (additional decklist rule required)")
                 click.echo(f"===Decklist===\n")
                 click.echo(format_decklist(deck))
