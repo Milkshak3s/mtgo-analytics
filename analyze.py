@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import json
 import os
 import shutil
+import subprocess
 
 
 WRITEFILE = "filelist.txt"
@@ -143,8 +144,13 @@ def enrich():
 @cli.command()
 @click.argument('after_date', nargs=1, type=str)
 @click.argument('format', nargs=1, type=str)
-def setup(after_date, format):
+@click.option("--update", "-u", is_flag=True)
+def setup(after_date, format, update):
     """Run all setup commands (get-filelist, copy-working-files, enrich)"""
+    if update:
+        subprocess.run(["cd", "MTGODecklistCache"], shell=True)
+        subprocess.run(["git", "pull"])
+        subprocess.run(["cd", ".."], shell=True)
     f_get_filelist(after_date, format)
     f_copy_working_files()
     f_enrich()
