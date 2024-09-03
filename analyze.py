@@ -58,12 +58,8 @@ def check_rule_matches(deck):
 def cli():
     pass
 
-
-@cli.command()
-@click.argument('after_date', nargs=1, type=str)
-@click.argument('format', nargs=1, type=str)
-def get_filelist(after_date, format):
-    """Generate a list of files after a certain date with the format YYYY-MM-DD"""
+def f_get_filelist(after_date, format):
+    """Function for get_filelist command"""
     date = datetime.fromisoformat(after_date)
 
     cachedir = './MTGODecklistCache/Tournaments'
@@ -89,10 +85,15 @@ def get_filelist(after_date, format):
         f.write(json.dumps(files))
     click.echo(f"Written to '{WRITEFILE}'")
 
-
 @cli.command()
-def copy_working_files():
-    """Copy working files from 'filelist.txt" into the 'MTGODecklistCacheModified' dir"""
+@click.argument('after_date', nargs=1, type=str)
+@click.argument('format', nargs=1, type=str)
+def get_filelist(after_date, format):
+    """Generate a list of files after a certain date with the format YYYY-MM-DD"""
+    return f_get_filelist(after_date, format)
+
+def f_copy_working_files():
+    """Function for copy_working_files command"""
     filepaths = load_cache_filepaths()
     
     # holy fuck
@@ -110,10 +111,18 @@ def copy_working_files():
         f.write(json.dumps(new_filepaths))
     click.echo(new_filepaths)
 
-
 @cli.command()
-def enrich():
-    """Enrich working json files"""
+def copy_working_files():
+    """Copy working files from 'filelist.txt" into the 'MTGODecklistCacheModified' dir"""
+    return f_copy_working_files()
+
+    with open(f"{WRITEFILE}.working", "w") as f:
+        f.write(json.dumps(new_filepaths))
+    click.echo(new_filepaths)
+
+
+def f_enrich():
+    """Function for enrich command"""
     filepaths = load_working_filepaths()
 
     for filepath in filepaths:
@@ -125,6 +134,22 @@ def enrich():
         data["DeckCount"] = deck_count
         with open(filepath, "w+") as f:
             json.dump(data, f)
+
+@cli.command()
+def enrich():
+    """Enrich working json files"""
+    return f_enrich()
+
+@cli.command()
+@click.argument('after_date', nargs=1, type=str)
+@click.argument('format', nargs=1, type=str)
+def setup(after_date, format):
+    """Run all setup commands (get-filelist, copy-working-files, enrich)"""
+    f_get_filelist(after_date, format)
+    f_copy_working_files()
+    f_enrich()
+    click.echo("Setup complete")
+
 
 def format_decklist(deck):
     deck_string = "Mainboard:\n"
@@ -149,10 +174,10 @@ def check_rules(silent):
             archetypes = set(list(map(lambda x : x["archetype"], rule_matches)))
             if len(archetypes) == 1:
                 if not silent:
-                    click.echo(f"{rule_matches[0]["archetype"]}")
+                    click.echo(f"{rule_matches[0]['archetype']}")
                 deck["Archetype"] = rule_matches[0]["archetype"]
             if len(archetypes) > 1:
-                click.echo(f"Multiple archetypes matched (disambiguation required): {list(map(lambda x : x["name"], rule_matches))}")
+                click.echo(f"Multiple archetypes matched (disambiguation required): {list(map(lambda x : x['name'], rule_matches))}")
                 click.echo(f"===Decklist===\n")
                 click.echo(format_decklist(deck))
                 with open(filepath, "w+") as f: #TODO -- this is big slops, find a better way to handle escaping
@@ -294,7 +319,7 @@ def show_archetype(archetype, players):
         for deck in data["Decks"]:
             if "Archetype" in deck and deck["Archetype"].lower() == archetype.lower() and (search_all or deck["Player"] in players):
                 count += 1
-                click.echo(f"===Decklist for {deck["Player"]}===")
+                click.echo(f"===Decklist for {deck['Player']}===")
                 click.echo(format_decklist(deck))
     players_specified_str = ""
     if not search_all:
