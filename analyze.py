@@ -5,6 +5,7 @@ import os
 import shutil
 import subprocess
 import requests
+from github import Github
 
 
 WRITEFILE = "filelist.txt"
@@ -365,12 +366,67 @@ def search_card(card, archetypes):
     click.echo("  Average count in mainboards (where present): %0.2f" % (mainboard_average))
     click.echo("  Average count in sideboards (where present): %0.2f" % (sideboard_average))
 
+"""
+    date = datetime.fromisoformat(after_date)
+
+    cachedir = './MTGODecklistCache/Tournaments'
+    mut_date = datetime.date(date)
+    files = []
+    for subdir in os.listdir(cachedir):
+        while mut_date <= datetime.date(datetime.now()):
+            month = mut_date.strftime("%m")
+            day = mut_date.strftime("%d")
+            path = f'{cachedir}/{subdir}/{mut_date.year}/{month}/{day}'
+            click.echo(path)
+            if os.path.isdir(path):
+                click.echo(f"2{path}")
+                dirlist = os.listdir(path)
+                for filename in dirlist:
+                    if format in filename:
+                        files.append(f'{path}/{filename}')
+                
+            mut_date = mut_date + timedelta(days=1)
+        mut_date = datetime.date(date)
+
+    with open(WRITEFILE, "w") as f:
+        f.write(json.dumps(files))
+    click.echo(f"Written to '{WRITEFILE}'")
+"""
+
+"""
+date = datetime.fromisoformat(after_date)
+mut_date = datetime.date(date)
+
+cache_url = 'https://raw.githubusercontent.com/Badaro/MTGODecklistCache/master/Tournaments'
+sources = ['manatraders.com', 'melee.gg', 'mtgo.com', 'mtgo.com_limited_data/2024', 'topdeck.gg/2024']
+
+files = []
+
+for source in sources:
+    while mut_date <= datetime.date(datetime.now()):
+        month = mut_date.strftime("%m")
+        day = mut_date.strftime("%d")
+        path = f'{cache_url}/{source}/{mut_date.year}/{month}/{day}'
+        click.echo(path)
+
+        try:
+
+"""
+
 @cli.command()
 def test():
     url = "https://raw.githubusercontent.com/Badaro/MTGODecklistCache/master/Tournaments/melee.gg/2024/09/05/weekly-legacy-144183-2024-09-05.json"
     r = requests.get(url)
     data = json.loads(r.text)
     click.echo(data["Tournament"]["Date"])
+
+    g = Github() 
+    repo = g.get_repo("Badaro/MTGODecklistCache")
+    contents = repo.get_contents("")
+    for content in contents:
+        click.echo(content)
+
+    # 
 
 if __name__ == "__main__":
     cli()
