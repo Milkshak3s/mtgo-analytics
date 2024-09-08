@@ -4,6 +4,7 @@ import json
 import os
 import shutil
 import subprocess
+import requests
 
 
 WRITEFILE = "filelist.txt"
@@ -341,6 +342,7 @@ def search_card(card, archetypes):
     total_count = 0
     mainboard_average = 0
     sideboard_average = 0
+    proportion = 0
     filepaths = load_working_filepaths()
     search_all = len(archetypes) == 0
     for filepath in filepaths:
@@ -354,12 +356,21 @@ def search_card(card, archetypes):
                     match_count += 1
                 mainboard_average += in_mb
                 sideboard_average += in_sb
-    if (match_count > 0):
+    if match_count > 0:
             mainboard_average /= match_count
             sideboard_average /= match_count
-    click.echo("Found in %d out of %d decks (%0.1f%%):" % (match_count, total_count, match_count / total_count * 100))
+    if total_count != 0:
+        proportion = match_count / total_count * 100
+    click.echo("Found in %d out of %d decks (%0.1f%%):" % (match_count, total_count, proportion))
     click.echo("  Average count in mainboards (where present): %0.2f" % (mainboard_average))
     click.echo("  Average count in sideboards (where present): %0.2f" % (sideboard_average))
+
+@cli.command()
+def test():
+    url = "https://raw.githubusercontent.com/Badaro/MTGODecklistCache/master/Tournaments/melee.gg/2024/09/05/weekly-legacy-144183-2024-09-05.json"
+    r = requests.get(url)
+    data = json.loads(r.text)
+    click.echo(data["Tournament"]["Date"])
 
 if __name__ == "__main__":
     cli()
