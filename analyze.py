@@ -5,7 +5,7 @@ import os
 import shutil
 import subprocess
 import requests
-from github import Github
+from github import Github, GithubException, UnknownObjectException
 
 
 WRITEFILE = "filelist.txt"
@@ -413,6 +413,13 @@ for source in sources:
 
 """
 
+def is_repo_dir(repo, path):
+    try:
+        contents = repo.get_contents(path)
+        return True, contents
+    except UnknownObjectException:
+        return False, None
+
 @cli.command()
 def test():
     url = "https://raw.githubusercontent.com/Badaro/MTGODecklistCache/master/Tournaments/melee.gg/2024/09/05/weekly-legacy-144183-2024-09-05.json"
@@ -420,12 +427,34 @@ def test():
     data = json.loads(r.text)
     click.echo(data["Tournament"]["Date"])
 
-    g = Github() 
-    repo = g.get_repo("Badaro/MTGODecklistCache")
-    contents = repo.get_contents("")
-    for content in contents:
-        click.echo(content)
+    g = Github()
+    repo_url = "Badaro/MTGODecklistCache"
+    raw_prefix = "https://raw.githubusercontent.com"
+    repo = g.get_repo(repo_url)
+    contents = repo.get_contents("Tournaments")
 
+    after_date = "2024-08-26" #TODO
+    date = datetime.fromisoformat(after_date)
+
+    mut_date = datetime.date(date)
+    files = []
+
+    for content in contents:
+        click.echo(content.path)
+
+        while mut_date <= datetime.date(datetime.now()):
+            month = mut_date.strftime("%m")
+            day = mut_date.strftime("%d")
+            path = f'{content.path}/{mut_date.year}/{month}/{day}'
+            click.echo(path)
+
+            mut_date = mut_date + timedelta(days=1)
+        mut_date = datetime.date(date)
+
+    try:
+        repo.get_contents('blablah')
+    except GithubException:
+        click.echo("!")
     # 
 
 if __name__ == "__main__":
